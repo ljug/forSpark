@@ -1,0 +1,683 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Travaux pratiques - Introduction à Spark et Scala &mdash; Cours Cnam RCP216</title>
+    
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Cours Cnam RCP216" href="index.html" />
+    <link rel="next" title="Cours - Réduction de l’ordre de complexité" href="coursReductionComplexite.html" />
+    <link rel="prev" title="Cours - Réduction du volume de données" href="coursReductionVolume.html" />
+<link rel="stylesheet"
+href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+      <link rel="stylesheet" href="/resources/demos/style.css">
+<style>
+  .toggler {
+  }
+  #button {
+    padding: .5em 1em;
+    text-decoration: none;
+  }
+  #effect {
+  }
+  </style>
+  <script>
+  $(function() {
+    // run the currently selected effect
+    function runEffect() {
+      // get effect type from
+      var selectedEffect = "clip";
+ 
+      // most effect types need no options passed by default
+      var options = {};
+      // some effects have required parameters
+      if ( selectedEffect === "scale" ) {
+        options = { percent: 0 };
+      } else if ( selectedEffect === "size" ) {
+        options = { to: { width: 200, height: 60 } };
+      }
+ 
+      // run the effect
+      $( "#effect" ).toggle( selectedEffect, options, 500 );
+    };
+ 
+    // set effect from select menu value
+    $( "#button" ).click(function() {
+      runEffect();
+    });
+  })
+  </script>
+  <script>
+  $(function() {
+        $( ".tabs" ).tabs();
+          });
+  </script>
+
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Cours Cnam RCP216</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="coursReductionVolume.html" title="Cours - Réduction du volume de données"
+             accesskey="P">précédent</a> |
+          <a href="coursReductionComplexite.html" title="Cours - Réduction de l’ordre de complexité"
+             accesskey="N">suivant</a> |
+          <a href="genindex.html" title="Index général"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="travaux-pratiques-introduction-a-spark-et-scala">
+<span id="chap-tpsparkscala"></span><h1>Travaux pratiques - Introduction à Spark et Scala<a class="headerlink" href="#travaux-pratiques-introduction-a-spark-et-scala" title="Lien permanent vers ce titre">¶</a></h1>
+<p>Références externes utiles :</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://spark.apache.org/docs/latest/">Documentation Spark</a></li>
+<li><a class="reference external" href="https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package">Documentation API Spark en Scala</a></li>
+<li><a class="reference external" href="http://docs.scala-lang.org">Documentation Scala</a></li>
+</ul>
+</div></blockquote>
+<p>Les exemples ci-dessous reprennent, en partie, ceux des documentations en ligne.</p>
+<div class="section" id="spark-concepts-de-base-avec-exemples">
+<h2>Spark : concepts de base avec exemples<a class="headerlink" href="#spark-concepts-de-base-avec-exemples" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Dans la salle de travaux pratiques, lors du démarrage de l&#8217;ordinateur, choisissez la configuration <code class="docutils literal"><span class="pre">Info-cloudera...</span></code>. CDH5 (Cloudera) est déjà installé et inclut Spark. Dans la suite, certaines commandes système sont spécifiques à cette configuration. Si vous installez Spark d&#8217;une autre façon, il vous faudra adapter les commandes système.</p>
+<p>Pour réaliser le projet, il sera nécessaire d&#8217;installer Spark sur un ordinateur auquel vous avez accès en permanence. Suivez ces instructions d&#8217;<a class="reference external" href="http://cedric.cnam.fr/vertigo/Cours/RCP216/installationSpark.html">installation de Spark</a> et signalez les éventuelles difficultés rencontrées (après avoir quand même cherché vous mêmes des solutions sur le web).</p>
+<dl class="docutils">
+<dt>Il est possible d&#8217;utiliser Spark à partir des langages Java, Scala ou Python</dt>
+<dd><ul class="first last simple">
+<li>à travers une interface en ligne de commandes (en Scala ou Python), pratique aussi bien pour des tests interactifs que pour l&#8217;étape de mise au point d&#8217;une nouvelle application,</li>
+<li>en écrivant (et en exécutant ensuite) un programme (voir la séance de TP suivante).</li>
+</ul>
+</dd>
+</dl>
+<p>Certaines librairies ayant été développées seulement en Scala, une application écrite en Java ou en Python doit les appeler pour employer leurs fonctionnalités.</p>
+<div class="section" id="lancement-de-l-interpreteur-de-commandes-en-scala-et-operations-simples">
+<h3>Lancement de l&#8217;interpréteur de commandes en Scala et opérations simples<a class="headerlink" href="#lancement-de-l-interpreteur-de-commandes-en-scala-et-operations-simples" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Vérifiez la présence du fichier <code class="docutils literal"><span class="pre">LICENSE</span></code> (LICENSE avec &#8220;S&#8221; car en anglais) et copiez-le dans un répertoire <code class="docutils literal"><span class="pre">tpintro</span></code> à créer (<strong>attention</strong>, <code class="docutils literal"><span class="pre">[cloudera&#64;quickstart</span> <span class="pre">~]$</span></code> est l&#8217;invite de commandes linux, il ne faut pas l&#8217;entrer au clavier) :</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ ls /usr/lib/spark/LICENSE
+<span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ mkdir tpintro
+<span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ <span class="nb">cd</span> tpintro
+<span class="o">[</span>cloudera@quickstart tpintro<span class="o">]</span>$ cp /usr/lib/spark/LICENSE .
+<span class="o">[</span>cloudera@quickstart tpintro<span class="o">]</span>$ <span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$PATH</span><span class="s2">:/usr/lib/spark/bin&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Lancez ensuite dans cette fenêtre l&#8217;interpréteur de commandes <code class="docutils literal"><span class="pre">spark-shell</span></code> en entrant</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>cloudera@quickstart tpintro<span class="o">]</span>$ spark-shell
+</pre></div>
+</div>
+</div></blockquote>
+<p>Créez un <em>Resilient Distributed Dataset</em> (RDD) à partir du fichier texte <code class="docutils literal"><span class="pre">LICENSE</span></code> en entrant dans la même fenêtre (<strong>attention</strong>, ici <code class="docutils literal"><span class="pre">scala&gt;</span></code> est l&#8217;invite de commandes de l&#8217;interpréteur Spark, n&#8217;entrez pas cela sur la ligne de commande de l&#8217;interpréteur) :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">texteLicence</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="s">&quot;file:///home/cloudera/tpintro/LICENSE&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Si vous avez fait une faute de frappe ou de recopie et ne comprenez pas ce qui s&#8217;affiche dans la fenêtre, appelez l&#8217;enseignant ou fermez la session Spark en appuyant simultanément sur les touches <code class="docutils literal"><span class="pre">Ctrl</span></code> et <code class="docutils literal"><span class="pre">d</span></code> du clavier. Il faudra ensuite relancer <code class="docutils literal"><span class="pre">spark-shell</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">sc</span></code> est un objet <code class="docutils literal"><span class="pre">SparkContext</span></code> qui indique à Spark comment accéder à un <em>cluster</em> pour exécuter les commandes. Dans ce TP les commandes seront exécutées sur un seul nœud, qui est celui sur lequel vous entrez les commandes (et sur lequel tourne le programme <em>driver</em> de Spark).</p>
+<p>Visualisez le fichier <code class="docutils literal"><span class="pre">LICENSE</span></code>. Pour cela, il faut ouvrir une seconde fenêtre terminal. Allez ensuite dans le répertoire où se trouve le fichier <code class="docutils literal"><span class="pre">LICENSE</span></code> et examinez-le :</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ <span class="nb">cd</span> tpintro
+<span class="o">[</span>cloudera@quickstart tpintro<span class="o">]</span>$ more LICENSE
+</pre></div>
+</div>
+</div></blockquote>
+<p>Avec la commande linux <code class="docutils literal"><span class="pre">more</span></code> il faut appuyer sur la touche espace pour passer à la page suivante. Sous linux, pour voir des explications concernant une commande comme <code class="docutils literal"><span class="pre">more</span></code> il faut entrer <code class="docutils literal"><span class="pre">man</span> <span class="pre">nom_commande</span></code> (par exemple <code class="docutils literal"><span class="pre">man</span> <span class="pre">more</span></code>) dans une fenêtre terminal (shell).</p>
+<p>Il est possible d&#8217;appliquer aux RDD des <strong>actions</strong>, qui produisent des valeurs, et des <strong>transformations</strong>, qui produisent de nouvelles RDD.</p>
+<p>Quelques <strong>actions</strong> simples :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">count</span><span class="o">()</span> <span class="c1">// nombre d&#39;items dans ce RDD</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">first</span><span class="o">()</span> <span class="c1">// premier item de ce RDD</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span> <span class="c1">// 5 premiers items de ce RDD</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">collect</span><span class="o">()</span> <span class="c1">// retourne le contenu de ce RDD</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Question : à quoi correspond un &#8220;item&#8221; de ce RDD ? Regardez la documentation (voir les liens du début du TP).</p>
+<p>L&#8217;exécution d&#8217;une action comme <code class="docutils literal"><span class="pre">count</span></code> sur un très grand RDD se déroule de la manière suivante : le RDD est composé de fragments, chacun stocké sur un nœud de calcul ; chaque fragment contient un (grand) nombre d&#8217;items ; le programme <em>driver</em> de Spark envoie à chaque nœud le traitement à faire ; chaque nœud de calcul exécute le traitement sur le fragment local et transmet les résultats au <em>driver</em>. Pour d&#8217;autres actions (comme <code class="docutils literal"><span class="pre">first</span></code>) seul un fragment est nécessaire donc seul un nœud est sollicité.</p>
+<p>Quelques <strong>transformations</strong> simples :</p>
+<blockquote>
+<div><ul class="simple">
+<li>Construire un RDD comprenant seulement les lignes de <code class="docutils literal"><span class="pre">texteLicence</span></code> qui contiennent &#8220;Copyright&#8221;, retourner un tableau avec ses 2 premiers items :</li>
+</ul>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">lignesAvecCopyright</span> <span class="k">=</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="s">&quot;Copyright&quot;</span><span class="o">))</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">lignesAvecCopyright</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">2</span><span class="o">)</span> <span class="c1">// tableau avec les 2 premiers items de ce RDD</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li>Construire un RDD composé des longueurs des lignes de texteLicence, retourner un tableau avec ses 5 premiers items :</li>
+</ul>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">longueursLignes</span> <span class="k">=</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">l</span> <span class="k">=&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">length</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">longueursLignes</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span> <span class="c1">// tableau avec les 5 premiers items de ce RDD</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+<p>Dans ces exemples, les expressions <code class="docutils literal"><span class="pre">l</span> <span class="pre">=&gt;</span> <span class="pre">l.contains(&quot;Copyright&quot;)</span></code> et <code class="docutils literal"><span class="pre">l</span> <span class="pre">=&gt;</span> <span class="pre">l.length</span></code> sont des définitions de &#8220;fonctions anonymes&#8221; (voir les éléments de Scala plus loin). Elles indiquent comment transformer chaque item du RDD ; <code class="docutils literal"><span class="pre">l</span></code> est ainsi implicitement assimilé à un item générique du RDD. Il est possible d&#8217;utiliser le nom de votre choix à la place de <code class="docutils literal"><span class="pre">l</span></code>, comme <code class="docutils literal"><span class="pre">ligne</span></code>, <code class="docutils literal"><span class="pre">line</span></code>, <code class="docutils literal"><span class="pre">x</span></code>, <code class="docutils literal"><span class="pre">toto</span></code>, etc.</p>
+<p>L&#8217;exécution d&#8217;une transformation comme <code class="docutils literal"><span class="pre">map</span></code> sur un très grand RDD se déroule de la manière suivante : le RDD est composé de fragments, chacun stocké sur un nœud de calcul ; le programme <em>driver</em> de Spark envoie à chaque nœud le traitement à faire ; chaque nœud de calcul exécute le traitement sur le fragment local et conserve les résultats localement.</p>
+<p><strong>Enchaînements</strong> de transformations et d&#8217;actions :</p>
+<div class="admonition-question admonition">
+<p class="first admonition-title">Question :</p>
+<p class="last">Combien de lignes contiennent <code class="docutils literal"><span class="pre">Copyright</span></code> ? Ecrire la commande nécessaire dans <code class="docutils literal"><span class="pre">spark-shell</span></code> et vérifier dans un terminal (shell) linux.</p>
+</div>
+<div class="admonition-correction admonition">
+<p class="first admonition-title">Correction</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">l</span> <span class="k">=&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="s">&quot;Copyright&quot;</span><span class="o">)).</span><span class="n">count</span><span class="o">()</span>
+</pre></div>
+</div>
+</div>
+<p>Pour vérifier, dans le second terminal pour commandes linux (et non celui avec spark-shell), entrer :</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ <span class="nb">cd</span> tpintro
+<span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ cat LICENSE <span class="p">|</span> grep Copyright <span class="p">|</span> wc
+</pre></div>
+</div>
+</div></blockquote>
+<p><code class="docutils literal"><span class="pre">cat</span> <span class="pre">LICENSE</span></code> retourne le contenu du fichier <code class="docutils literal"><span class="pre">LICENSE</span></code>. Le caractère <code class="docutils literal"><span class="pre">|</span></code> indique que la sortie de la commande qui précède ne doit pas être retourné à la console mais envoyé vers la commande qui suit (c&#8217;est un enchaînement de commandes ou <em>pipe</em> linux). <code class="docutils literal"><span class="pre">grep</span> <span class="pre">Copyright</span></code> retourne les lignes du fichier d&#8217;entrée (ici <code class="docutils literal"><span class="pre">LICENSE</span></code> envoyé par la commande précédente) qui contiennent le &#8220;motif&#8221; (<em>pattern</em>) <code class="docutils literal"><span class="pre">Copyright</span></code>. Ces lignes sont envoyées (encore <code class="docutils literal"><span class="pre">|</span></code>) vers la commande linux <code class="docutils literal"><span class="pre">wc</span></code> qui retourne le nombre total de lignes, de &#8220;mots&#8221; (séquences de caractères séparées par des espaces et assimilés) et de caractères du fichier reçu en entrée (ici, les lignes de <code class="docutils literal"><span class="pre">LICENSE</span></code> contenant <code class="docutils literal"><span class="pre">Copyright</span></code>).</p>
+<div class="admonition-question admonition">
+<p class="first admonition-title">Question :</p>
+<p class="last">Combien de caractères contient le fichier ?</p>
+</div>
+<div class="admonition-correction admonition">
+<p class="first admonition-title">Correction</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">l</span> <span class="k">=&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">length</span><span class="o">).</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<p><strong>Important :</strong> l&#8217;évaluation est &#8220;paresseuse&#8221; : les opérations sont effectuées seulement quand un résultat doit être retourné. Par exemple, dans la séquence</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">texteLicence</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="s">&quot;file:///home/cloudera/tpintro/LICENSE&quot;</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">longueursLignes</span> <span class="k">=</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">l</span> <span class="k">=&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">length</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">longueursLignes</span><span class="o">.</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>les données ne sont pas chargées en mémoire après la première ligne, <code class="docutils literal"><span class="pre">longueursLignes</span></code> n&#8217;est pas construit immédiatement après la transformation <code class="docutils literal"><span class="pre">map</span></code> de la seconde ligne, ce n&#8217;est qu&#8217;au moment où l&#8217;action <code class="docutils literal"><span class="pre">reduce</span></code> doit être exécutée que Spark partitionne les calculs à faire en tâches pour les différentes machines (et/ou cœurs) et chaque machine (et/ou cœur) exécute sa partie de <code class="docutils literal"><span class="pre">map</span></code> et de <code class="docutils literal"><span class="pre">reduce</span></code>, avant de retourner la réponse au programme <em>driver</em> (qui contrôle l&#8217;exécution). Lorsque <code class="docutils literal"><span class="pre">spark-shell</span></code> vous signale une erreur, il est possible que cette erreur ne provienne pas de la dernière instruction que vous avez écrite mais d&#8217;une instruction antérieure. Pour cela, lorsque vous mettez en place une chaîne de traitement en vous servant de <code class="docutils literal"><span class="pre">spark-shell</span></code>, il est utile d&#8217;entrer de temps en temps des actions simples comme <code class="docutils literal"><span class="pre">longueursLignes.take(2)</span></code> pour identifier plus facilement les éventuelles erreurs.</p>
+<p>Examinons plus attentivement l&#8217;action <code class="docutils literal"><span class="pre">reduce((a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b)</span></code> de l&#8217;exemple précédent. L&#8217;expression <code class="docutils literal"><span class="pre">(a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b</span></code> est une définition de &#8220;fonction anonyme&#8221; (voir les éléments de Scala plus loin) qui indique comment transformer une paire d&#8217;items du RDD ; <code class="docutils literal"><span class="pre">a</span></code> et <code class="docutils literal"><span class="pre">b</span></code> sont ainsi implicitement assimilés à deux items génériques du RDD. Il est possible d&#8217;utiliser le nom de votre choix à la place de <code class="docutils literal"><span class="pre">a</span></code> ou <code class="docutils literal"><span class="pre">b</span></code>. Le déroulement de cette action est le suivant : chaque noeud, sur le fragment local du RDD, remplace chaque paire d&#8217;items par leur somme, ensuite applique de nouveau cette opération jusqu&#8217;à ce qu&#8217;il obtienne une seule valeur (qui sera dans ce cas la somme des valeurs de tous les items) ; ces résultats sont transmis au <em>driver</em> qui les additionne pour obtenir la somme globale.</p>
+<p>Si vous souhaitez supprimer les nombreuses lignes d&#8217;information qui précèdent la réponse, dans le répertoire <code class="docutils literal"><span class="pre">conf</span></code> copiez <code class="docutils literal"><span class="pre">log4j.properties.template</span></code> en <code class="docutils literal"><span class="pre">log4j.properties</span></code> et, dans ce dernier fichier, ligne <code class="docutils literal"><span class="pre">log4j.rootCategory=INFO</span></code>, remplacez <code class="docutils literal"><span class="pre">INFO</span></code> par <code class="docutils literal"><span class="pre">WARN</span></code>. Sur les ordinateurs de la salle de TP, par défaut vous n&#8217;avez pas le droit d&#8217;écrire dans ce répertoire, il vous faudra précéder les commandes de copie et d&#8217;appel de l&#8217;éditeur de <code class="docutils literal"><span class="pre">sudo</span></code>. Dans une fenêtre terminal (shell), à ouvrir séparément de la fenêtre Spark, entrez les commandes :</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">[</span>cloudera@quickstart ~<span class="o">]</span>$ <span class="nb">cd</span> /usr/lib/spark/conf
+<span class="o">[</span>cloudera@quickstart conf<span class="o">]</span>$ sudo cp log4j.properties.template log4j.properties
+<span class="o">[</span>cloudera@quickstart conf<span class="o">]</span>$ sudo gedit log4j.properties
+</pre></div>
+</div>
+</div></blockquote>
+<p>Dans <code class="docutils literal"><span class="pre">gedit</span></code>, ligne <code class="docutils literal"><span class="pre">log4j.rootCategory=INFO</span></code>, remplacez <code class="docutils literal"><span class="pre">INFO</span></code> par <code class="docutils literal"><span class="pre">WARN</span></code>. <code class="docutils literal"><span class="pre">[cloudera&#64;quickstart</span> <span class="pre">conf]$</span></code> est le prompt système dans la fenêtre shell.</p>
+</div>
+<div class="section" id="actions">
+<h3>Actions<a class="headerlink" href="#actions" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Dans les exemples précédents, <code class="docutils literal"><span class="pre">count</span></code>, <code class="docutils literal"><span class="pre">first</span></code>, <code class="docutils literal"><span class="pre">take</span></code>, <code class="docutils literal"><span class="pre">collect</span></code> et <code class="docutils literal"><span class="pre">reduce</span></code> sont des exemples d&#8217;actions.</p>
+<p>Voici ci-dessous quelques actions parmi les plus utilisées. Consulter la documentation (<a class="reference external" href="https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.RDD">Scala</a>, <a class="reference external" href="https://spark.apache.org/docs/latest/api/java/index.html?org/apache/spark/api/java/JavaRDD.html">Java</a>, <a class="reference external" href="https://spark.apache.org/docs/latest/api/python/pyspark.html#pyspark.RDD">Python</a>) pour une liste complète et des spécifications détaillées.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Action</th>
+<th class="head">Signification</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">reduce(func)</span></code></td>
+<td>Agréger les éléments du RDD en utilisant la fonction func (qui prend 2
+arguments et retourne 1 résultat). La fonction devrait être associative et
+commutative afin de pouvoir être correctement calculée en parallèle.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">collect()</span></code></td>
+<td>Retourner tous les items du RDD comme un tableau au programme <em>driver</em>. A
+utiliser seulement si le RDD a un volume faible (par ex., après des
+opérations de type <code class="docutils literal"><span class="pre">filter</span></code> très sélectives).</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">count()</span></code></td>
+<td>Retourner le nombre de items du le RDD.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">take(n)</span></code></td>
+<td>Retourner un tableau avec les <code class="docutils literal"><span class="pre">n</span></code> premiers items du RDD.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">first()</span></code></td>
+<td>Retourner le premier item du RDD (similaire à <code class="docutils literal"><span class="pre">take(1)</span></code>).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">countByKey()</span></code></td>
+<td>Pour RDD de type (clé, valeur), retourne l&#8217;ensemble de paires (clé, Int)
+avec le nombre de valeurs pour chaque clé.</td>
+</tr>
+<tr class="row-even"><td><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">takeSample(withReplacement,</span></code></dt>
+<dd><code class="docutils literal"><span class="pre">num,</span> <span class="pre">[seed])</span></code></dd>
+</dl>
+</td>
+<td>Retourne un tableau avec un échantillon aléatoire de <code class="docutils literal"><span class="pre">num</span></code> items du RDD,
+avec ou sans remplacement, avec une possible spécification de <code class="docutils literal"><span class="pre">seed</span></code> pour
+le générateur aléatoire.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">saveAsTextFile(path)</span></code></td>
+<td>Ecrit les items du RDD dans un fichier texte dans un répertoire du système
+de fichiers local, HDFS ou autre fichier supporté par Hadoop. Spark appelle
+<code class="docutils literal"><span class="pre">toString</span></code> pour convertir chaque item en une ligne de texte dans le
+fichier.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">saveAsSequenceFile(path)</span></code></td>
+<td>(Java et Scala seulement !) Ecrit les items du RDD sous forme de Hadoop
+SequenceFile dans un répertoire du système de fichiers local, HDFS ou autre
+fichier supporté par Hadoop. Disponible pour RDD de paires (clé,valeur) qui
+implémentent l&#8217;interface Writable de Hadoop. En Scala, disponible aussi pour
+des types implicitement convertibles à Writable (Int, Double, String,etc.).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">saveAsObjectFile(path)</span></code></td>
+<td>(Java et Scala seulement !) Ecrit les éléments du RDD en un format simple
+utilisant la sérialisation Java, qui peut être lu ensuite avec
+<code class="docutils literal"><span class="pre">SparkContext.objectFile()</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="transformations-et-persistance">
+<h3>Transformations et persistance<a class="headerlink" href="#transformations-et-persistance" title="Lien permanent vers ce titre">¶</a></h3>
+<dl class="docutils">
+<dt>Les transformations peuvent</dt>
+<dd><ul class="first last simple">
+<li>produire un RDD à partir d&#8217;un autre RDD : <code class="docutils literal"><span class="pre">map</span></code>, <code class="docutils literal"><span class="pre">filter</span></code>, <code class="docutils literal"><span class="pre">reduceByKey</span></code>, etc.</li>
+<li>produire un RDD à partir de deux RDD : <code class="docutils literal"><span class="pre">union</span></code>, <code class="docutils literal"><span class="pre">join</span></code>, <code class="docutils literal"><span class="pre">cartesian</span></code>, etc.</li>
+<li>produire 0 ou plusieurs RDD à partir d&#8217;un RDD : <code class="docutils literal"><span class="pre">flatMap</span></code>.</li>
+</ul>
+</dd>
+</dl>
+<p>Un exemple avec <code class="docutils literal"><span class="pre">flatMap</span></code> : à partir de <code class="docutils literal"><span class="pre">texteLicence</span></code>, obtenir un RDD <code class="docutils literal"><span class="pre">motsTexteLicence</span></code> ayant pour items les mots des différentes lignes et le rendre persistant pour faciliter des traitements ultérieurs.</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">motsTexteLicence</span> <span class="k">=</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">motsTexteLicence</span><span class="o">.</span><span class="n">persist</span><span class="o">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Les lignes (items du RDD <code class="docutils literal"><span class="pre">texteLicence</span></code>) sont divisées en mots séparés par des espaces. <code class="docutils literal"><span class="pre">motsTexteLicence</span></code> n&#8217;est pas calculé immédiatement (évaluation paresseuse) mais le sera au moment où un résultat devra être retourné. Avec <code class="docutils literal"><span class="pre">persist</span></code>, Spark cherchera à conserver ce RDD en mémoire une fois qu&#8217;il sera calculé.</p>
+<div class="admonition-question admonition">
+<p class="first admonition-title">Question :</p>
+<p class="last">Comptez le nombre d&#8217;occurrences de chaque mot (regardez <code class="docutils literal"><span class="pre">reduceByKey</span></code> dans le tableau des transformations), affichez les 5 premiers items résultants.</p>
+</div>
+<div class="admonition-correction admonition">
+<p class="first admonition-title">Correction</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">motsTexteLicenceUn</span> <span class="k">=</span> <span class="n">motsTexteLicence</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="mi">1</span><span class="o">))</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">motsTexteLicenceUn</span><span class="o">.</span><span class="n">reduceByKey</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">).</span><span class="n">take</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition-question admonition">
+<p class="first admonition-title">Question :</p>
+<p class="last">Triez les items en ordre alphabétique des mots (regardez <code class="docutils literal"><span class="pre">sortByKey</span></code> dans le tableau des transformations), retournez les 5 premiers.</p>
+</div>
+<div class="admonition-correction admonition">
+<p class="first admonition-title">Correction</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="n">motsTexteLicenceUn</span><span class="o">.</span><span class="n">reduceByKey</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">).</span><span class="n">sortByKey</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="n">take</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<p>Bien entendu, si des RDD persistants ne sont pas nécessaires, il est plus simple d&#8217;enchaîner directement les opérations (écrire la totalité sur une seule ligne ou démarrer la ligne suivante par <code class="docutils literal"><span class="pre">|</span></code> suivie d&#8217;un espace avant d&#8217;écrire la suite sur la seconde ligne) :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="mi">1</span><span class="o">))</span>
+                   <span class="o">.</span><span class="n">reduceByKey</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">).</span><span class="n">sortByKey</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="n">take</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Noter que dans les fonctions anonymes <code class="docutils literal"><span class="pre">line</span> <span class="pre">=&gt;</span> <span class="pre">line.split(&quot;</span> <span class="pre">&quot;)</span></code> et <code class="docutils literal"><span class="pre">word</span> <span class="pre">=&gt;</span> <span class="pre">(word,</span> <span class="pre">1)</span></code> il est possible d&#8217;utiliser une autre notation pour les items des RDD correspondants, par exemple <code class="docutils literal"><span class="pre">a</span> <span class="pre">=&gt;</span> <span class="pre">a.split(&quot;</span> <span class="pre">&quot;)</span></code> et <code class="docutils literal"><span class="pre">a</span> <span class="pre">=&gt;</span> <span class="pre">(a,</span> <span class="pre">1)</span></code> ; les mots &#8220;line&#8221; et &#8220;word&#8221; n&#8217;ont pas de signification particulière pour le programme (ils rappellent simplement au programmeur la signification des items de ces RDD).</p>
+<p>Voici quelques transformation parmi les plus utilisées. Consulter la documentation (<a class="reference external" href="https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.RDD">Scala</a>, <a class="reference external" href="https://spark.apache.org/docs/latest/api/java/index.html?org/apache/spark/api/java/JavaRDD.html">Java</a>, <a class="reference external" href="https://spark.apache.org/docs/latest/api/python/pyspark.html#pyspark.RDD">Python</a>) pour une liste complète et des spécifications détaillées.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Transformation</th>
+<th class="head">Signification</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">map(func)</span></code></td>
+<td>Returne un nouveau RDD obtenu en appliquant la fonction <code class="docutils literal"><span class="pre">func</span></code> à
+chaque item du RDD de départ.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">filter(func)</span></code></td>
+<td>Returne un nouveau RDD obtenu en sélectionnant les items de la source
+pour lesquels la fonction <code class="docutils literal"><span class="pre">func</span></code> retourne &#8220;vrai&#8221;.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">flatMap(func)</span></code></td>
+<td>Similaire à <code class="docutils literal"><span class="pre">map</span></code> mais chaque item du RDD source peut être transformé
+en 0 ou plusieurs items ; retourner une séquence (<code class="docutils literal"><span class="pre">Seq</span></code>) plutôt qu&#8217;un
+seul item.</td>
+</tr>
+<tr class="row-odd"><td><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">sample(withReplacement,</span></code></dt>
+<dd><code class="docutils literal"><span class="pre">fraction,</span> <span class="pre">seed)</span></code></dd>
+</dl>
+</td>
+<td>Retourne un RDD contenant une fraction aléatoire <code class="docutils literal"><span class="pre">fraction</span></code> du RDD
+auquel la transformation s&#8217;applique, avec ou sans remplacement, avec
+une spécification de <code class="docutils literal"><span class="pre">seed</span></code> pour le générateur aléatoire.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">union(otherDataset)</span></code></td>
+<td>Retourne un RDD qui est l&#8217;union (ensembliste) des items du RDD source
+et du RDD argument (<code class="docutils literal"><span class="pre">otherDataset</span></code>).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">intersection(otherDataset)</span></code></td>
+<td>Retourne un RDD qui est l&#8217;intersection des items du RDD source et du
+RDD argument (<code class="docutils literal"><span class="pre">otherDataset</span></code>).</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">distinct([numTasks]))</span></code></td>
+<td>Retourne un RDD qui est l&#8217;union des items du RDD source et du RDD
+argument (<code class="docutils literal"><span class="pre">otherDataset</span></code>).</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">groupByKey([numTasks])</span></code></td>
+<td>Pour RDD de type (clé, valeur), retourne un RDD de paires (clé,
+Iterable&lt;valeur&gt;). Si le regroupement est réalisé en vue d&#8217;opérations
+d&#8217;agrégation (somme, moyenne), de meilleures performances peuvent être
+obtenues avec <code class="docutils literal"><span class="pre">reduceByKey</span></code> ou <code class="docutils literal"><span class="pre">combineByKey</span></code>.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">reduceByKey(func,</span> <span class="pre">[numTasks])</span></code></td>
+<td>Pour RDD de type (clé, valeur), retourne un RDD de paires (clé, valeur)
+où les valeurs pour chaque clé sont agrégées grâce à la fonction
+<code class="docutils literal"><span class="pre">func</span></code> de type (valeur,valeur) =&gt; valeur.</td>
+</tr>
+<tr class="row-odd"><td><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">aggregateByKey(zeroValue)</span></code></dt>
+<dd><code class="docutils literal"><span class="pre">(seqOp,combOp,[numTasks])</span></code></dd>
+</dl>
+</td>
+<td>Pour RDD de type (clé, valeur), retourne un RDD de paires (clé, U) où
+les valeurs pour chaque clé sont agrégées grâce aux fonctions de
+combinaison <code class="docutils literal"><span class="pre">seqOp</span></code>, <code class="docutils literal"><span class="pre">combOp</span></code> et à une valeur neutre <code class="docutils literal"><span class="pre">zeroValue</span></code>.
+Le type de U peut être différent du type des valeurs de départ.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">sortByKey([ascending],</span> <span class="pre">[numTasks])</span></code></td>
+<td>Pour RDD de type (clé, valeur) où la clé implémente <code class="docutils literal"><span class="pre">Ordered</span></code>,
+retourne un RDD de paires (clé, valeur) trié par ordre ascendant ou
+descendant des clés (suivant la valeur de vérité de <code class="docutils literal"><span class="pre">[ascending]</span></code>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">join(otherDataset,</span> <span class="pre">[numTasks])</span></code></td>
+<td>Pour RDD de type (K, V) (ou (clé, valeur)) et <code class="docutils literal"><span class="pre">otherDataset</span></code> de type
+(K,W), retourne un RDD de paires (K, (V, W)) avec toutes les paires
+d&#8217;items pour chaque clé. Jointures externes avec <code class="docutils literal"><span class="pre">leftOuterJoin</span></code>,
+<code class="docutils literal"><span class="pre">rightOuterJoin</span></code>, and <code class="docutils literal"><span class="pre">fullOuterJoin</span></code>.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">cogroup(otherDataset,</span> <span class="pre">[numTasks])</span></code></td>
+<td>Pour RDD de type (K, V) (ou (clé, valeur)) et <code class="docutils literal"><span class="pre">otherDataset</span></code> de type
+type (K,W), retourne un RDD de paires (K, (Iterable&lt;V&gt;, Iterable&lt;W&gt;)).
+Synonyme de <code class="docutils literal"><span class="pre">groupWith</span></code>.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">cartesian(otherDataset)</span></code></td>
+<td>Pour RDD de type T et <code class="docutils literal"><span class="pre">otherDataset</span></code> de type U, retourne un RDD de
+type (T, U) (toutes les paires d&#8217;items).</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">pipe(command,</span> <span class="pre">[envVars])</span></code></td>
+<td><em>Pipe</em> de chaque partition à travers une commande shell (par ex. script
+Perl ou bash). Les items de RDD sont écrits sur stdin du process et les
+sorties du process (stdout) sont retournées comme un RDD de strings.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-question admonition">
+<p class="first admonition-title">Question :</p>
+<p class="last">Retournez la valeur maximale et la moyenne du nombre de mots des lignes du fichier.</p>
+</div>
+<div class="admonition-correction admonition">
+<p class="first admonition-title">Correction</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">nombresMotsParLignes</span> <span class="k">=</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">l</span> <span class="k">=&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">).</span><span class="n">size</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">nombresMotsParLignes</span><span class="o">.</span><span class="n">persist</span><span class="o">()</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">lMax</span> <span class="k">=</span> <span class="n">nombresMotsParLignes</span><span class="o">.</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="o">)</span> <span class="n">a</span> <span class="k">else</span> <span class="n">b</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">lAvg</span> <span class="k">=</span> <span class="n">nombresMotsParLignes</span><span class="o">.</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">)</span> <span class="o">/</span> <span class="n">texteLicence</span><span class="o">.</span><span class="n">count</span><span class="o">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="creation-de-rdd-stockage-de-rdd">
+<h3>Création de RDD, stockage de RDD<a class="headerlink" href="#creation-de-rdd-stockage-de-rdd" title="Lien permanent vers ce titre">¶</a></h3>
+<dl class="docutils">
+<dt>Il y a deux possibilités pour créer un RDD :</dt>
+<dd><ol class="first last arabic simple">
+<li>Référencer des données externes.</li>
+<li>Paralléliser une collection existante.</li>
+</ol>
+</dd>
+</dl>
+<p>Spark permet de créer un RDD à partir de toute source de données acceptée par Hadoop (fichier local, HDFS, HBase, etc.). Quelques exemples :</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">SparkContext.textFile</span></code> : lit le fichier donné en paramètre (sous forme de URI) et construit un RDD dont les items sont les lignes du fichier texte ;</li>
+<li><code class="docutils literal"><span class="pre">SparkContext.wholeTextFiles</span></code> : lit un répertoire contenant de nombreux fichiers texte de petite taille et retourne un RDD dans lequel chacun de ces fichiers constitue un item de type paire (nomFichier, contenuFichier).</li>
+<li><code class="docutils literal"><span class="pre">SparkContext.sequenceFile[K,</span> <span class="pre">V]</span></code> : lit un fichier-séquence avec K et V les types des clés et respectivement des valeurs dans la séquence. K et V devraient être des sous-classes de l&#8217;interface Hadoop <code class="docutils literal"><span class="pre">Writable</span></code>, comme <code class="docutils literal"><span class="pre">IntWritable</span></code> et <code class="docutils literal"><span class="pre">Text</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">SparkContext.hadoopRDD</span></code> : pour autres <code class="docutils literal"><span class="pre">InputFormats</span></code> de Hadoop. Utiliser plutôt <code class="docutils literal"><span class="pre">SparkContext.newHadoopRDD</span></code> pour des formats d&#8217;entrée basés sur la &#8220;nouvelle&#8221; API MapReduce (<code class="docutils literal"><span class="pre">org.apache.hadoop.mapreduce</span></code>).</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Si l&#8217;URI correspond à un fichier local, il faut s&#8217;assurer que le fichier est accessible avec le même URI aux <em>workers</em>.
+Toutes les méthodes spark de création de RDD à partir de fichiers peuvent fonctionner sur des répertoires, des fichiers compressés et utiliser des <em>wildcards</em>. Par exemple : <code class="docutils literal"><span class="pre">textFile(&quot;/my/directory&quot;)</span></code>, <code class="docutils literal"><span class="pre">textFile(&quot;/my/directory/*.txt&quot;)</span></code> et <code class="docutils literal"><span class="pre">textFile(&quot;/my/directory/*.gz&quot;)</span></code>.</p>
+</div>
+<p>Dans la configuration actuelle de Spark dans la salle de travaux pratiques, c&#8217;est le système de fichiers (<em>filesystem</em>) HDFS (distribué) qui est utilisé par défaut. Si vous entrez simplement <code class="docutils literal"><span class="pre">sc.textFile(&quot;/home/cloudera/tpintro/LICENSE&quot;)</span></code>, Spark cherchera le fichier dans le système de fichiers HDFS et ne le trouvera pas dans notre exemple. Avec le préfixe <code class="docutils literal"><span class="pre">file://</span></code> on indique que le fichier à lire est sur le système de fichiers local. Si la configuration par défaut utilise le système de fichiers local, pour indiquer un fichier HDFS il faut employer le préfixe <code class="docutils literal"><span class="pre">hdfs://</span></code>.</p>
+<p>Un RDD peut également être créé en parallélisant une collection existante, par un appel à la méthode  <code class="docutils literal"><span class="pre">SparkContext.parallelize</span></code> avec une collection (Scala <code class="docutils literal"><span class="pre">Seq</span></code>) présente dans le programme <em>driver</em>. Les éléments de la collection sont distribués pour former un RDD sur lequel des opérations pourront être effectuées en parallèle. Par exemple, voici comment créer un RDD à partir d&#8217;un (très petit) tableau contenant les nombres de 1 à 5 :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">donnees</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">donneesDistribuees</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">parallelize</span><span class="o">(</span><span class="n">donnees</span><span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Spark essaye de partitionner le RDD automatiquement à partir des caractéristiques du <em>cluster</em> sur lequel les calculs doivent être réalisés. Il est toutefois possible d&#8217;indiquer un nombre précis de partitions dans le second paramètre de la méthode <code class="docutils literal"><span class="pre">parallelize</span></code>, par exemple <code class="docutils literal"><span class="pre">sc.parallelize(donnees,</span> <span class="pre">30)</span></code>. Une partition correspond à une tâche et il est conseillé d&#8217;avoir entre 2 et 4 tâches par processeur (ou cœur).</p>
+<dl class="docutils">
+<dt>Un RDD peut être sauvegardé (voir aussi le tableau des Actions, plus haut) :</dt>
+<dd><ul class="first last simple">
+<li>sous forme de fichier texte avec <code class="docutils literal"><span class="pre">saveAsTextFile(path)</span></code> (Spark appelle <code class="docutils literal"><span class="pre">toString</span></code> pour convertir chaque item du RDD en une ligne de texte),</li>
+<li>sous forme de <code class="docutils literal"><span class="pre">SequenceFile</span></code> Hadoop avec <code class="docutils literal"><span class="pre">saveAsSequenceFile(path)</span></code>,</li>
+<li>dans un format simple en utilisant la sérialisation Java avec <code class="docutils literal"><span class="pre">saveAsObjectFile(path)</span></code>.</li>
+</ul>
+</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">path</span></code> indique un répertoire du système de fichiers local, HDFS ou autre fichier supporté par Hadoop.</p>
+</div>
+</div>
+<div class="section" id="scala-concepts-de-base-avec-exemples">
+<h2>Scala : concepts de base avec exemples<a class="headerlink" href="#scala-concepts-de-base-avec-exemples" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Scala est à la fois un langage objet pur, dans lequel chaque valeur est un objet (contrairement à Java), et un langage fonctionnel, chaque fonction étant également une valeur (donc un objet). Pour référence et un éventuel apprentissage plus approfondi du langage :</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://docs.scala-lang.org">Documentation Scala</a></li>
+<li><a class="reference external" href="http://docs.scala-lang.org/tutorials/tour/tour-of-scala.html">Tutoriels Scala</a></li>
+</ul>
+</div></blockquote>
+<div class="section" id="fonctions-anonymes">
+<h3>Fonctions anonymes<a class="headerlink" href="#fonctions-anonymes" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Les &#8220;fonctions anonymes&#8221; sont très utiles dans la définition d&#8217;opérations simples à appliquer aux données. Les expressions vues plus haut, comme <code class="docutils literal"><span class="pre">(a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b</span></code>, <code class="docutils literal"><span class="pre">(a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">if</span> <span class="pre">(a</span> <span class="pre">&gt;</span> <span class="pre">b)</span> <span class="pre">a</span> <span class="pre">else</span> <span class="pre">b</span></code> ou <code class="docutils literal"><span class="pre">l</span> <span class="pre">=&gt;</span> <span class="pre">l.split(&quot;</span> <span class="pre">&quot;).size</span></code> sont des définitions de fonctions anonymes. Les deux premières fonctions ont deux arguments chacune, la troisième fonction a un seul argument. La définition <code class="docutils literal"><span class="pre">(a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b</span></code> est, pour des arguments qui sont des <code class="docutils literal"><span class="pre">Int</span></code>, une version courte de la définition suivante :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">new</span> <span class="nc">Function1</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span>, <span class="kt">Int</span><span class="o">]</span> <span class="o">{</span>
+    <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">y</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>(c&#8217;est une définition formelle, non directement interprétable, ne l&#8217;entrez pas au clavier)</p>
+<p>Il est possible de définir des fonctions anonymes avec plus de deux paramètres, par exemple <code class="docutils literal"><span class="pre">(x:</span> <span class="pre">Int,</span> <span class="pre">y:</span> <span class="pre">Int,</span> <span class="pre">z:</span> <span class="pre">Int)</span> <span class="pre">=&gt;</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span> <span class="pre">-</span> <span class="pre">z</span></code>. Une telle fonction peut être appelée directement :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="o">((</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">y</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">z</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">-</span> <span class="n">z</span><span class="o">)(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="mi">3</span><span class="o">)</span> <span class="c1">// exemple appel fonction anonyme</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Enfin, une fonction anonyme peut n&#8217;avoir aucun paramètre, par exemple <code class="docutils literal"><span class="pre">()</span> <span class="pre">=&gt;</span> <span class="pre">{</span> <span class="pre">System.getProperty(&quot;user.dir&quot;)</span> <span class="pre">}</span></code>, qui peut être appelée directement :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="o">(()</span> <span class="k">=&gt;</span> <span class="o">{</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;user.dir&quot;</span><span class="o">)</span> <span class="o">})()</span>  <span class="c1">// exemple appel fonction anonyme</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Dans les expressions vues plus tôt, comme <code class="docutils literal"><span class="pre">(a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b</span></code> employée par exemple dans <code class="docutils literal"><span class="pre">longueursLignes.reduce((a,</span> <span class="pre">b)</span> <span class="pre">=&gt;</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b)</span></code>, le type des arguments n&#8217;était pas explicitement indiqué car il était donné par le type des items qui composent le RDD <code class="docutils literal"><span class="pre">longueursLignes</span></code>.</p>
+</div>
+<div class="admonition-question admonition">
+<p class="first admonition-title">Question :</p>
+<p class="last">Séparez en mots la phrase &#8220;Stat Roma pristina nomine, nomina nuda tenemus&#8221; à l&#8217;aide d&#8217;une fonction anonyme.</p>
+</div>
+<div class="admonition-correction admonition">
+<p class="first admonition-title">Correction</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="o">((</span><span class="n">l</span><span class="k">:</span><span class="kt">String</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))(</span><span class="s">&quot;Stat Roma pristina nomine, nomina nuda tenemus&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="listes-en-comprehension-sequence-comprehensions">
+<h3>Listes en compréhension (<em>Sequence Comprehensions</em>)<a class="headerlink" href="#listes-en-comprehension-sequence-comprehensions" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Les &#8220;listes en compréhension&#8221; sont des listes dont le contenu est défini par filtrage du contenu d&#8217;une autre liste, contrairement à l&#8217;approche plus classique de la construction de liste par énumération de ses éléments.</p>
+<p>Scala propose une notation facile pour définir des listes par compréhension : <code class="docutils literal"><span class="pre">for</span> <span class="pre">(enumerators)</span> <span class="pre">yield</span> <span class="pre">e</span></code>, où <code class="docutils literal"><span class="pre">enumerators</span></code> est une liste de <em>enumerators</em> séparés par des &#8221;;&#8221;. Un <em>enumerator</em> est soit un générateur qui introduit une ou plusieurs nouvelles variables, soit un filtre. Cette construction évalue l&#8217;expresssion <code class="docutils literal"><span class="pre">e</span></code> pour chaque association (<em>binding</em>) générée par les <em>enumerators</em> et retourne une séquence de ces valeurs.</p>
+<p>Voici un exemple :</p>
+<blockquote>
+<div><div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">scala</span><span class="o">&gt;</span> <span class="k">def</span> <span class="n">odd</span><span class="o">(</span><span class="n">from</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">to</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="n">from</span> <span class="n">until</span> <span class="n">to</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="k">yield</span> <span class="n">i</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">odd</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="mi">20</span><span class="o">))</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>L&#8217;expression <code class="docutils literal"><span class="pre">for</span></code> dans la définition de la fonction <code class="docutils literal"><span class="pre">odd</span></code> introduit une nouvelle variable <code class="docutils literal"><span class="pre">i:</span> <span class="pre">Int</span></code> qui prend ensuite toutes les valeurs générées par l&#8217;itérateur <code class="docutils literal"><span class="pre">_</span> <span class="pre">until</span> <span class="pre">_</span></code> qui passent le test <code class="docutils literal"><span class="pre">if</span> <span class="pre">i</span> <span class="pre">%</span> <span class="pre">2</span> <span class="pre">!=</span> <span class="pre">0</span></code> (ce test élimine les valeurs paires). Ici l&#8217;expression <code class="docutils literal"><span class="pre">e</span></code> de la syntaxe générale est réduite à la variable <code class="docutils literal"><span class="pre">i</span></code>. L&#8217;expression <code class="docutils literal"><span class="pre">for</span></code> retourne donc un tableau avec les nombres impaires entre <code class="docutils literal"><span class="pre">from</span></code> et <code class="docutils literal"><span class="pre">to</span> <span class="pre">-</span> <span class="pre">1</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table des Matières</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="preambule.html">Préambule</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursIntroduction.html">Cours - Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installationSpark.html">Installation de Spark</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursReductionVolume.html">Cours - Réduction du volume de données</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Travaux pratiques - Introduction à Spark et Scala</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#spark-concepts-de-base-avec-exemples">Spark : concepts de base avec exemples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lancement-de-l-interpreteur-de-commandes-en-scala-et-operations-simples">Lancement de l&#8217;interpréteur de commandes en Scala et opérations simples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#actions">Actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transformations-et-persistance">Transformations et persistance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creation-de-rdd-stockage-de-rdd">Création de RDD, stockage de RDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scala-concepts-de-base-avec-exemples">Scala : concepts de base avec exemples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fonctions-anonymes">Fonctions anonymes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#listes-en-comprehension-sequence-comprehensions">Listes en compréhension (<em>Sequence Comprehensions</em>)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coursReductionComplexite.html">Cours - Réduction de l&#8217;ordre de complexité</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpDonneesNumeriques.html">Travaux pratiques - Manipulation de données numériques. Exécution d&#8217;applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursSimilariteRecommandation.html">Cours - Recherche par similarité. Application aux systèmes de recommandation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpComposantesPrincipales.html">Travaux pratiques - Echantillonnage. Analyse en composantes principales</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursClassificationAutomatique.html">Cours - Classification Automatique</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpClassificationAutomatique.html">Travaux pratiques - Classification automatique avec <em>k-means</em></a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursFouilleTexte.html">Cours - Fouille de données textuelles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpFouilleTexte.html">Travaux pratiques - Fouille de données textuelles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursFouilleFluxDonnees.html">Cours - Fouille de flux de données</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpFouilleFlux.html">Travaux pratiques - Fouille de flux de données</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursApprentissageLargeEchelle.html">Cours - Apprentissage à large échelle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpSVMlineaires.html">Travaux pratiques - SVM linéaires</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursFouilleGraphesReseauxSociaux.html">Cours - Fouille de graphes et réseaux sociaux (1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpGraphes.html">Travaux pratiques - Fouille de réseaux sociaux, première partie</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursFouilleGraphesReseauxSociaux2.html">Cours - Fouille de graphes et réseaux sociaux (2)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpGraphesPetitsMondes.html">Travaux pratiques - Fouille de réseaux sociaux, deuxième partie</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursVisualisationInformation.html">Cours - Visualisation d&#8217;information : historique, applications, outils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpIntroductionProcessing.html">Travaux pratiques - Introduction à Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursVisInfoEnjeuxPerceptifs.html">Cours - Visualisation d&#8217;information : Enjeux perceptifs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpCartographie.html">Travaux pratiques - Cartographie</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursVisInfoRepresentationsMultidimensionnelles.html">Cours - Visualisation d&#8217;information : Représentations multidimensionelles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpPetitsMultiples.html">Travaux pratiques - Petits multiples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursVisInfoInteraction.html">Cours - Visualisation d&#8217;information : Interaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpTreemaps.html">Travaux pratiques - <em>Treemaps</em></a></li>
+<li class="toctree-l1"><a class="reference internal" href="coursVisInfoMassesTextesImagesLivres.html">Cours - Visualisation d&#8217;information : Masses de {textes, images, livres}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tpNuagesMots.html">Travaux pratiques - Nuages de mots</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Recherche</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Saisissez un mot clef ou un nom de module, classe ou fonction.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="coursReductionVolume.html" title="Cours - Réduction du volume de données"
+              >précédent</a> |
+            <a href="coursReductionComplexite.html" title="Cours - Réduction de l’ordre de complexité"
+              >suivant</a> |
+            <a href="genindex.html" title="Index général"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/tpSparkScala.txt"
+                rel="nofollow">Montrer le code source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Michel Crucianu, Pierre Cubaud, Raphaël Fournier-S&#39;niehotta, Marin Ferecatu - Cnam.
+      Mis à jour le Mar 29, 2016.
+      Créé avec <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
