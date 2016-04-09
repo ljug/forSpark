@@ -15,4 +15,4 @@ Certaines compléments serviront par ailleur au auditeurs de SMB215 (Installatio
 * Scala Netebans
 
 
-Visiter le wiki pour suivre l'[adaptation des Traveaux Pratique de RCP216](wiki)
+Visiter le wiki pour suivre l'[adaptation des Traveaux Pratique de RCP216](https://github.com/ljug/forSpark/wiki)
