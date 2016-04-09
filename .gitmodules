@@ -1,0 +1,3 @@
+[submodule "TheWiki"]
+	path = TheWiki
+	url = https://github.com/ljug/forSpark.wiki.git
